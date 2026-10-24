@@ -1,0 +1,99 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h2>{{ 'Edit Tentor' if instructor else 'Tambah Tentor' }}</h2>
+        <p>
+            {{ 'Perbarui informasi tentor.' if instructor
+            else 'Masukkan informasi tentor baru.' }}
+        </p>
+    </div>
+
+    <a href="{{ url_for('instructors.index') }}" class="btn btn-secondary">
+        Kembali
+    </a>
+</div>
+
+<div class="form-panel">
+    <form
+        method="POST"
+        action="{{
+            url_for('instructors.edit', instructor_id=instructor.id)
+            if instructor
+            else url_for('instructors.create')
+        }}"
+    >
+        <div class="form-group">
+            <label for="name">Nama Tentor <span>*</span></label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                value="{{ instructor.name if instructor else '' }}"
+                placeholder="Masukkan nama lengkap"
+                maxlength="100"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="gender">Jenis Kelamin</label>
+            <select id="gender" name="gender">
+                <option value="">Pilih jenis kelamin</option>
+                <option
+                    value="male"
+                    {% if instructor and instructor.gender == 'male' %}selected{% endif %}
+                >
+                    Laki-laki
+                </option>
+                <option
+                    value="female"
+                    {% if instructor and instructor.gender == 'female' %}selected{% endif %}
+                >
+                    Perempuan
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Nomor Telepon</label>
+            <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value="{{ instructor.phone if instructor else '' }}"
+                placeholder="Contoh: 081234567890"
+                maxlength="20"
+            >
+            <small>Gunakan format nomor telepon yang biasa dipakai.</small>
+        </div>
+
+        {% if instructor %}
+        <div class="form-group">
+            <label>Status Saat Ini</label>
+            <p>
+                {% if instructor.status == 'active' %}
+                    <span class="badge-status active">Aktif</span>
+                {% else %}
+                    <span class="badge-status inactive">Nonaktif</span>
+                {% endif %}
+            </p>
+            <small>
+                Status dapat diubah melalui tombol aksi pada halaman Data Tentor.
+            </small>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="{{ url_for('instructors.index') }}" class="btn btn-secondary">
+                Batal
+            </a>
+            <button type="submit" class="btn btn-primary">
+                {{ 'Simpan Perubahan' if instructor else 'Simpan Tentor' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
