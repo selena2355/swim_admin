@@ -1,0 +1,73 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit Kolam" if pool else "Tambah Kolam" }}{% endblock %}
+{% block breadcrumb %}Data Master / Kolam / {{ "Edit" if pool else "Tambah" }}{% endblock %}
+{% block page_heading %}{{ "Edit Kolam" if pool else "Tambah Kolam" }}{% endblock %}
+
+{% block content %}
+
+<div class="page-intro">
+    <div>
+        <h2>{{ "Perbarui Informasi Kolam" if pool else "Formulir Kolam Baru" }}</h2>
+        <p>
+            {{ "Ubah informasi kolam yang sudah terdaftar." if pool
+               else "Masukkan informasi kolam renang yang akan didaftarkan." }}
+        </p>
+    </div>
+</div>
+
+<div class="panel form-panel">
+    <form method="POST">
+        <div class="form-group">
+            <label for="name">Nama Kolam <span class="required">*</span></label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                maxlength="100"
+                value="{{ pool.name if pool else request.form.get('name', '') }}"
+                placeholder="Contoh: Kolam Tirta Asri"
+                required
+                autofocus
+            >
+            <small>Gunakan nama kolam yang mudah dikenali admin.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Alamat Kolam</label>
+            <textarea
+                id="address"
+                name="address"
+                rows="4"
+                placeholder="Masukkan alamat lengkap kolam"
+            >{{ pool.address if pool else request.form.get('address', '') or '' }}</textarea>
+            <small>Alamat boleh dikosongkan jika belum tersedia.</small>
+        </div>
+
+        {% if pool %}
+        <div class="form-group">
+            <label>Status Saat Ini</label>
+            <div>
+                {% if pool.status == "active" %}
+                    <span class="badge-status active">Aktif</span>
+                {% else %}
+                    <span class="badge-status inactive">Nonaktif</span>
+                {% endif %}
+            </div>
+            <small>Untuk mengubah status, gunakan tombol pada halaman daftar kolam.</small>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="{{ url_for('pools.index') }}" class="btn btn-light">
+                Batal
+            </a>
+            <button type="submit" class="btn btn-primary">
+                {{ "Simpan Perubahan" if pool else "Simpan Kolam" }}
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

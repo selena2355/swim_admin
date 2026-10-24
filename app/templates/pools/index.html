@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Data Kolam{% endblock %}
+{% block breadcrumb %}Data Master / Data Kolam{% endblock %}
+{% block page_heading %}Data Kolam{% endblock %}
+
+{% block content %}
+
+<div class="page-intro">
+    <div>
+        <h2>Daftar Kolam Renang</h2>
+        <p>Kelola lokasi yang digunakan untuk kegiatan les renang.</p>
+    </div>
+
+    <a href="{{ url_for('pools.create') }}" class="btn btn-primary">
+        + Tambah Kolam
+    </a>
+</div>
+
+<div class="panel">
+    <form method="GET" action="{{ url_for('pools.index') }}" class="filter-form">
+        <div class="search-box">
+            <input type="text" name="search" placeholder="Cari nama kolam..." value="{{ search }}">
+        </div>
+
+        <select name="status" aria-label="Filter status">
+            <option value="">Semua status</option>
+            <option value="active" {% if status_filter=="active" %}selected{% endif %}>
+                Aktif
+            </option>
+            <option value="inactive" {% if status_filter=="inactive" %}selected{% endif %}>
+                Nonaktif
+            </option>
+        </select>
+
+        <button type="submit" class="btn btn-primary">Cari</button>
+        <a href="{{ url_for('pools.index') }}" class="btn btn-danger">Reset</a>
+    </form>
+
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Nama Kolam</th>
+                    <th>Alamat</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for pool in pools %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <strong>{{ pool.name }}</strong>
+                    </td>
+                    <td>{{ pool.address or "-" }}</td>
+                    <td>
+                        {% if pool.status == "active" %}
+                        <span class="badge-status active">Aktif</span>
+                        {% else %}
+                        <span class="badge-status inactive">Nonaktif</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('pools.edit', pool_id=pool.id) }}" class="btn btn-small btn-secondary">
+                                Edit
+                            </a>
+
+                            <form method="POST" action="{{ url_for('pools.toggle_status', pool_id=pool.id) }}"
+                                onsubmit="return confirm('Yakin ingin mengubah status kolam ini?');">
+                                <button type="submit"
+                                    class="btn btn-small {% if pool.status == 'active' %}btn-danger{% else %}btn-success{% endif %}">
+                                    {% if pool.status == "active" %}
+                                    Nonaktifkan
+                                    {% else %}
+                                    Aktifkan
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <div class="empty-icon">≈</div>
+                        <strong>Belum ada data kolam</strong>
+                        <p>
+                            {% if search or status_filter %}
+                            Tidak ada kolam yang cocok dengan filter.
+                            {% else %}
+                            Tambahkan kolam pertama untuk memulai.
+                            {% endif %}
+                        </p>
+                        {% if not search and not status_filter %}
+                        <a href="{{ url_for('pools.create') }}" class="btn btn-primary">
+                            + Tambah Kolam
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        Total data ditampilkan: <strong>{{ pools|length }}</strong> kolam
+    </div>
+</div>
+
+{% endblock %}
