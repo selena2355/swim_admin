@@ -1,0 +1,129 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="welcome-section">
+    <div>
+        <h2>Selamat datang di Swim Admin!</h2>
+        <p>
+            Kelola data murid, tentor, kolam, paket, dan jadwal
+            les renang dalam satu tempat.
+        </p>
+    </div>
+    <div class="welcome-icon">🏊</div>
+</div>
+
+<div class="section-heading">
+    <div>
+        <h2>Ringkasan Data</h2>
+        <p>Informasi data yang tersimpan saat ini.</p>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-icon blue">♙</span>
+            <span class="stat-label">DATA MURID</span>
+        </div>
+        <div class="stat-number">{{ total_students }}</div>
+        <p class="stat-description">Total profil murid</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-icon purple">♧</span>
+            <span class="stat-label">DATA TENTOR</span>
+        </div>
+        <div class="stat-number">{{ total_instructors }}</div>
+        <p class="stat-description">Total profil tentor</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-icon cyan">≈</span>
+            <span class="stat-label">DATA KOLAM</span>
+        </div>
+        <div class="stat-number">{{ total_pools }}</div>
+        <p class="stat-description">Total kolam terdaftar</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-top">
+            <span class="stat-icon orange">▤</span>
+            <span class="stat-label">TIPE PAKET</span>
+        </div>
+        <div class="stat-number">{{ total_packages }}</div>
+        <p class="stat-description">Total tipe paket</p>
+    </div>
+</div>
+
+<div class="content-grid">
+    <div class="panel">
+        <div class="panel-heading">
+            <div>
+                <h3>Mulai dari Sini</h3>
+                <p>Langkah awal mengatur administrasi.</p>
+            </div>
+        </div>
+
+        <div class="getting-started-list">
+            <div class="getting-started-item">
+                <span class="step-number">01</span>
+                <div>
+                    <strong>Lengkapi data kolam</strong>
+                    <p>Daftarkan lokasi yang digunakan untuk les renang.</p>
+                </div>
+            </div>
+
+            <div class="getting-started-item">
+                <span class="step-number">02</span>
+                <div>
+                    <strong>Daftarkan tentor</strong>
+                    <p>Simpan identitas dan informasi kontak tentor.</p>
+                </div>
+            </div>
+
+            <div class="getting-started-item">
+                <span class="step-number">03</span>
+                <div>
+                    <strong>Atur tipe paket</strong>
+                    <p>Tentukan jenis kelas, layanan, harga, dan kapasitas.</p>
+                </div>
+            </div>
+
+            <div class="getting-started-item">
+                <span class="step-number">04</span>
+                <div>
+                    <strong>Mulai mengelola jadwal</strong>
+                    <p>Buat slot jadwal dan tempatkan murid sesuai paket.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel schedule-summary">
+        <div class="panel-heading">
+            <div>
+                <h3>Jadwal Mingguan</h3>
+                <p>Ringkasan slot yang telah dibuat.</p>
+            </div>
+            <span class="panel-icon">▦</span>
+        </div>
+
+        <div class="schedule-number">{{ total_slots }}</div>
+        <p class="stat-description">Total slot jadwal terdaftar</p>
+
+        <div class="schedule-note">
+            <span class="status-dot"></span>
+            Data jadwal akan tampil di sini setelah slot dibuat.
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}Dashboard{% endblock %} | Swim Admin</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="app-layout">
+
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">S</div>
+                <div>
+                    <h2>Swim Admin</h2>
+                    <p>Administration System</p>
+                </div>
+            </div>
+
+            <div class="sidebar-label">MENU UTAMA</div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                    <span class="nav-icon">▦</span>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="sidebar-label">DATA MASTER</div>
+
+                <span class="nav-link disabled">
+                    <span class="nav-icon">♙</span>
+                    <span>Data Murid</span>
+                    <small>Segera</small>
+                </span>
+
+                <a href="{{ url_for('instructors.index') }}"
+                    class="nav-link {% if request.endpoint and request.endpoint.startswith('instructors.') %}active{% endif %}">
+                    <span class="nav-icon">♙</span>
+                    <span>Data Tentor</span>
+                </a>
+
+                <a href="{{ url_for('pools.index') }}"
+                    class="nav-link {% if request.endpoint and request.endpoint.startswith('pools.') %}active{% endif %}">
+                    <span class="nav-icon">≈</span>
+                    <span>Data Kolam</span>
+                </a>
+
+                <span class="nav-link disabled">
+                    <span class="nav-icon">▤</span>
+                    <span>Tipe Paket</span>
+                    <small>Segera</small>
+                </span>
+
+                <div class="sidebar-label">OPERASIONAL</div>
+
+                <span class="nav-link disabled">
+                    <span class="nav-icon">▦</span>
+                    <span>Jadwal Mingguan</span>
+                    <small>Segera</small>
+                </span>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="footer-avatar">SA</div>
+                <div>
+                    <strong>Administrator</strong>
+                    <p>Panel Administrasi</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="breadcrumb">Swim Admin / {% block breadcrumb %}Dashboard{% endblock %}</p>
+                    <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
+                </div>
+
+                <div class="topbar-status">
+                    <span class="status-dot"></span>
+                    Sistem Lokal
+                </div>
+            </header>
+
+            <section class="page-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </section>
+
+            <footer class="page-footer">
+                Swim Admin &copy; 2026
+            </footer>
+        </main>
+
+    </div>
+</body>
+
+</html>
