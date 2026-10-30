@@ -1,4 +1,3 @@
-
 from datetime import datetime
 
 from flask import (
@@ -10,9 +9,16 @@ from flask import (
     flash,
 )
 from sqlalchemy import or_
+from sqlalchemy.orm import joinedload
 
 from app import db
-from app.models import ScheduleSlot, Instructor, Pool
+from app.models import (
+    ScheduleSlot,
+    ScheduleBooking,
+    StudentPackage,
+    Instructor,
+    Pool,
+)
 
 
 schedule_bp = Blueprint(
@@ -163,11 +169,24 @@ def save_schedule_form(slot=None):
 
 @schedule_bp.route("/")
 def index():
-    slots = ScheduleSlot.query.order_by(
-        ScheduleSlot.day_of_week.asc(),
-        ScheduleSlot.start_time.asc(),
-        ScheduleSlot.id.asc(),
-    ).all()
+    slots = (
+        ScheduleSlot.query
+        .options(
+            joinedload(ScheduleSlot.instructor),
+            joinedload(ScheduleSlot.pool),
+            joinedload(ScheduleSlot.bookings)
+            .joinedload(ScheduleBooking.student),
+            joinedload(ScheduleSlot.bookings)
+            .joinedload(ScheduleBooking.student_package)
+            .joinedload(StudentPackage.package_type),
+        )
+        .order_by(
+            ScheduleSlot.day_of_week.asc(),
+            ScheduleSlot.start_time.asc(),
+            ScheduleSlot.id.asc(),
+        )
+        .all()
+    )
 
     grouped_slots = {
         day: [
@@ -282,4 +301,26 @@ def toggle_status(slot_id):
         db.session.rollback()
         flash("Status slot jadwal gagal diperbarui.", "error")
 
+    return redirect(url_for("schedules.index"))
+
+@schedule_bp.route("/<int:slot_id>/delete", methods=["POST"])
+def delete(slot_id):
+    slot = ScheduleSlot.query.get_or_404(slot_id)
+
+    # Cek apakah slot masih memiliki booking
+    bookings = ScheduleBooking.query.filter_by(
+        schedule_slot_id=slot.id
+    ).all()
+
+    if bookings:
+        flash(
+            "Jadwal tidak bisa dihapus karena sudah memiliki riwayat penempatan murid.",
+            "danger"
+        )
+        return redirect(url_for("schedules.index"))
+
+    db.session.delete(slot)
+    db.session.commit()
+
+    flash("Jadwal berhasil dihapus.", "success")
     return redirect(url_for("schedules.index"))

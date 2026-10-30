@@ -1,34 +1,33 @@
+
 {% extends "base.html" %}
 
 {% block title %}Jadwal Mingguan{% endblock %}
-{% block breadcrumb %}Data Master / Data Jadwal{% endblock %}
-{% block page_heading %}Data Jadwal{% endblock %}
+{% block breadcrumb %}Operasional / Jadwal Mingguan{% endblock %}
+{% block page_heading %}Jadwal Mingguan{% endblock %}
 
 {% block content %}
+
 <div class="page-intro">
     <div>
         <h1>Jadwal Mingguan</h1>
-        <p>Kelola slot jadwal tentor dan kolam renang.</p>
+        <p>Kelola slot jadwal dan kelompok murid dalam satu halaman.</p>
     </div>
 
     <a href="{{ url_for('schedules.create') }}" class="btn btn-primary">
-        + Tambah Slot
+        + Tambah Jadwal
     </a>
 </div>
 
 <div class="table-info">
-    Jadwal ditampilkan berdasarkan hari dan jam.
-    Slot kosong tetap ditampilkan agar admin dapat melihat
-    waktu yang tersedia.
+    Slot kosong tetap ditampilkan agar admin dapat melihat waktu yang tersedia.
 </div>
 
 {% for day, day_name in day_names.items() %}
 <section class="schedule-day">
+
     <div class="schedule-day-header">
         <h2>{{ day_name }}</h2>
-        <span>
-            {{ grouped_slots[day]|length }} slot
-        </span>
+        <span>{{ grouped_slots[day]|length }} slot</span>
     </div>
 
     {% if grouped_slots[day] %}
@@ -36,10 +35,10 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Waktu</th>
                     <th>Tentor</th>
+                    <th>Waktu</th>
                     <th>Kolam</th>
-                    <th>Status</th>
+                    <th>Kelompok</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -47,44 +46,60 @@
             <tbody>
                 {% for slot in grouped_slots[day] %}
                 <tr>
+                    <td>{{ slot.instructor.name }}</td>
+
                     <td>
                         {{ slot.start_time.strftime('%H:%M') }}
                         –
                         {{ slot.end_time.strftime('%H:%M') }}
                     </td>
 
-                    <td>{{ slot.instructor.name }}</td>
-
                     <td>{{ slot.pool.name }}</td>
 
                     <td>
-                        {% if slot.status == 'active' %}
-                        <span class="badge-status active">
-                            Aktif
-                        </span>
+                        {% set active_bookings = slot.bookings
+                            |selectattr('status', 'equalto', 'active')
+                            |list %}
+
+                        {% if active_bookings %}
+                            {% set first_booking = active_bookings[0] %}
+                            {% if first_booking.student_package %}
+                                <strong>
+                                    {{ first_booking.student_package.package_type.name }}
+                                </strong>
+                            {% endif %}
+
+                            <small>
+                                {{ active_bookings|length }} murid
+                            </small>
+
+                            <ul>
+                                {% for booking in active_bookings %}
+                                <li>{{ booking.student.name }}</li>
+                                {% endfor %}
+                            </ul>
                         {% else %}
-                        <span class="badge-status inactive">
-                            Nonaktif
-                        </span>
+                            <span class="badge-status inactive">Kosong</span>
                         {% endif %}
                     </td>
 
                     <td>
                         <div class="action-group">
-                            <a href="{{ url_for('schedules.edit', slot_id=slot.id) }}"
+                            <a
+                                href="{{ url_for('schedules.edit', slot_id=slot.id) }}"
                                 class="btn btn-small btn-secondary">
                                 Edit
                             </a>
 
-                            <form method="POST" action="{{ url_for('schedules.toggle_status', slot_id=slot.id) }}"
-                                onsubmit="return confirm('Yakin ingin mengubah status slot ini?');">
-                                <button type="submit"
-                                    class="btn btn-small {% if slot.status == 'active' %}btn-danger{% else %}btn-success{% endif %}">
-                                    {% if slot.status == 'active' %}
-                                    Nonaktifkan
-                                    {% else %}
-                                    Aktifkan
-                                    {% endif %}
+                            <form
+                                method="POST"
+                                action="{{ url_for('schedules.delete', slot_id=slot.id) }}"
+                                onsubmit="return confirm('Yakin ingin menghapus slot jadwal ini?');">
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-small btn-danger">
+                                    Hapus
                                 </button>
                             </form>
                         </div>
@@ -94,16 +109,18 @@
             </tbody>
         </table>
     </div>
+
     {% else %}
     <div class="empty-state">
         Belum ada slot jadwal untuk hari {{ day_name }}.
     </div>
     {% endif %}
+
 </section>
 {% endfor %}
 
 <div class="table-info">
-    Total data ditampilkan: {{ total_slots|length }} slot
+    Total jadwal: {{ total_slots|length }} slot
 </div>
 
 {% endblock %}
