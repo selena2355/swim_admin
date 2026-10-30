@@ -16,10 +16,11 @@ from app.models import (
     ScheduleSlot,
     ScheduleBooking,
     StudentPackage,
+    Student,
+    PackageType,
     Instructor,
     Pool,
 )
-
 
 schedule_bp = Blueprint(
     "schedules",
@@ -45,7 +46,25 @@ def parse_time(value):
         return datetime.strptime(value, "%H:%M").time()
     except (ValueError, TypeError):
         raise ValueError("Format jam tidak valid.")
-
+    
+def get_active_student_packages():
+    """Mengambil paket aktif milik murid aktif."""
+    return (
+        StudentPackage.query
+        .join(Student, StudentPackage.student_id == Student.id)
+        .join(PackageType, StudentPackage.package_type_id == PackageType.id)
+        .filter(
+            StudentPackage.status == "active",
+            Student.status == "active",
+            PackageType.status == "active",
+        )
+        .options(
+            joinedload(StudentPackage.student),
+            joinedload(StudentPackage.package_type),
+        )
+        .order_by(Student.name.asc())
+        .all()
+    )
 
 def check_schedule_conflict(
     instructor_id,
@@ -86,8 +105,9 @@ def check_schedule_conflict(
     return True, None
 
 
+
 def save_schedule_form(slot=None):
-    """Memvalidasi dan menyimpan data slot jadwal."""
+    """Memvalidasi dan menyimpan slot beserta kelompok murid."""
 
     instructor_id = request.form.get("instructor_id", type=int)
     pool_id = request.form.get("pool_id", type=int)
@@ -96,40 +116,36 @@ def save_schedule_form(slot=None):
     start_value = request.form.get("start_time", "").strip()
     end_value = request.form.get("end_time", "").strip()
 
+    def fail(message):
+        db.session.rollback()
+        return False, message
+
     if not instructor_id or not pool_id:
-        return False, "Tentor dan kolam wajib dipilih."
+        return fail("Tentor dan kolam wajib dipilih.")
 
     if day_of_week not in DAY_NAMES:
-        return False, "Hari yang dipilih tidak valid."
+        return fail("Hari yang dipilih tidak valid.")
 
     instructor = db.session.get(Instructor, instructor_id)
     pool = db.session.get(Pool, pool_id)
 
     if not instructor or instructor.status != "active":
-        return False, "Tentor tidak ditemukan atau sudah tidak aktif."
+        return fail("Tentor tidak ditemukan atau sudah tidak aktif.")
 
     if not pool or pool.status != "active":
-        return False, "Kolam tidak ditemukan atau sudah tidak aktif."
+        return fail("Kolam tidak ditemukan atau sudah tidak aktif.")
 
     try:
         start_time = parse_time(start_value)
         end_time = parse_time(end_value)
     except ValueError as error:
-        return False, str(error)
+        return fail(str(error))
 
     if start_time >= end_time:
-        return False, "Jam selesai harus setelah jam mulai."
+        return fail("Jam selesai harus setelah jam mulai.")
 
-    status = (
-        request.form.get("status", "active").strip()
-        if slot
-        else "active"
-    )
+    status = slot.status if slot else "active"
 
-    if status not in ("active", "inactive"):
-        return False, "Status jadwal tidak valid."
-
-    # Slot aktif tidak boleh berbenturan dengan slot aktif lain.
     if status == "active":
         valid, message = check_schedule_conflict(
             instructor_id=instructor_id,
@@ -141,30 +157,181 @@ def save_schedule_form(slot=None):
         )
 
         if not valid:
-            return False, message
+            return fail(message)
 
+    # Ambil pilihan kelompok dari form.
+    package_type_id = request.form.get("package_type_id", type=int)
+    raw_ids = request.form.getlist("student_package_ids")
+
+    try:
+        selected_ids = [int(value) for value in raw_ids]
+    except (ValueError, TypeError):
+        return fail("Pilihan paket murid tidak valid.")
+
+    if len(selected_ids) != len(set(selected_ids)):
+        return fail("Ada paket murid yang dipilih lebih dari sekali.")
+
+    if bool(package_type_id) != bool(selected_ids):
+        return fail(
+            "Pilih jenis paket dan murid secara lengkap, "
+            "atau biarkan keduanya kosong."
+        )
+
+    selected_packages = []
+    package_type = None
+
+    if selected_ids:
+        package_type = db.session.get(PackageType, package_type_id)
+
+        if not package_type or package_type.status != "active":
+            return fail("Jenis paket tidak ditemukan atau sudah nonaktif.")
+
+        selected_packages = (
+            StudentPackage.query
+            .filter(
+                StudentPackage.id.in_(selected_ids),
+                StudentPackage.status == "active",
+            )
+            .options(
+                joinedload(StudentPackage.student),
+                joinedload(StudentPackage.package_type),
+            )
+            .all()
+        )
+
+        if len(selected_packages) != len(selected_ids):
+            return fail(
+                "Ada paket murid yang tidak ditemukan atau tidak aktif."
+            )
+
+        # Validasi setiap murid dan jenis paketnya.
+        student_ids = []
+
+        for student_package in selected_packages:
+            student = student_package.student
+
+            if student.status != "active":
+                return fail(
+                    f"Murid {student.name} tidak berstatus aktif."
+                )
+
+            if student_package.package_type_id != package_type.id:
+                return fail(
+                    "Semua murid harus menggunakan jenis paket yang sama."
+                )
+
+            if student_package.package_type.status != "active":
+                return fail("Jenis paket salah satu murid sudah nonaktif.")
+
+            student_ids.append(student.id)
+
+        if len(student_ids) != len(set(student_ids)):
+            return fail(
+                "Satu murid tidak boleh dipilih lebih dari satu kali."
+            )
+
+        total_students = len(selected_packages)
+
+        if not (
+            package_type.min_participants
+            <= total_students
+            <= package_type.max_participants
+        ):
+            return fail(
+                f"Paket {package_type.name} harus berisi "
+                f"{package_type.min_participants}–"
+                f"{package_type.max_participants} murid. "
+                f"Kamu memilih {total_students} murid."
+            )
+
+        if status != "active":
+            return fail(
+                "Slot nonaktif tidak dapat menerima kelompok baru."
+            )
+
+    # Siapkan slot.
     if slot is None:
         slot = ScheduleSlot()
+        db.session.add(slot)
 
     slot.instructor_id = instructor_id
     slot.pool_id = pool_id
     slot.day_of_week = day_of_week
     slot.start_time = start_time
     slot.end_time = end_time
-    slot.status = status
 
-    # Kapasitas akan ditentukan ketika kelompok murid ditempatkan.
-    # Nilai awal hanya sebagai batas sementara, bukan tipe paket.
-    if slot.capacity is None or slot.capacity < 1:
+    if package_type:
+        slot.capacity = package_type.max_participants
+    elif slot.capacity is None or slot.capacity < 1:
         slot.capacity = 5
 
     try:
-        db.session.add(slot)
+        # Flush agar slot baru memiliki ID sebelum booking dibuat.
+        db.session.flush()
+
+        if selected_packages:
+            selected_id_set = set(selected_ids)
+
+            # Periksa konflik jadwal setiap murid.
+            for student_package in selected_packages:
+                conflict = (
+                    ScheduleBooking.query
+                    .join(ScheduleSlot)
+                    .filter(
+                        ScheduleBooking.student_id
+                        == student_package.student_id,
+                        ScheduleBooking.status == "active",
+                        ScheduleSlot.status == "active",
+                        ScheduleSlot.id != slot.id,
+                        ScheduleSlot.day_of_week == day_of_week,
+                        ScheduleSlot.start_time < end_time,
+                        ScheduleSlot.end_time > start_time,
+                    )
+                    .first()
+                )
+
+                if conflict:
+                    db.session.rollback()
+                    return (
+                        False,
+                        f"Murid {student_package.student.name} "
+                        "sudah memiliki jadwal yang bertabrakan.",
+                    )
+
+            # Pertahankan booking yang masih dipilih.
+            # Booking yang dilepas menjadi inactive agar riwayatnya
+            # tidak hilang.
+            existing_bookings = ScheduleBooking.query.filter_by(
+                schedule_slot_id=slot.id,
+                status="active",
+            ).all()
+
+            existing_ids = set()
+
+            for booking in existing_bookings:
+                if booking.student_package_id in selected_id_set:
+                    existing_ids.add(booking.student_package_id)
+                else:
+                    booking.status = "inactive"
+
+            # Tambahkan booking baru yang belum ada.
+            for student_package in selected_packages:
+                if student_package.id not in existing_ids:
+                    db.session.add(
+                        ScheduleBooking(
+                            schedule_slot_id=slot.id,
+                            student_id=student_package.student_id,
+                            student_package_id=student_package.id,
+                            status="active",
+                        )
+                    )
+
         db.session.commit()
-        return True, "Slot jadwal berhasil disimpan."
+        return True, "Jadwal berhasil disimpan."
+
     except Exception:
         db.session.rollback()
-        return False, "Slot jadwal gagal disimpan."
+        return False, "Jadwal gagal disimpan. Tidak ada perubahan yang disimpan."
 
 
 @schedule_bp.route("/")
@@ -203,6 +370,59 @@ def index():
         total_slots=slots,
     )
 
+def render_schedule_form(slot=None):
+    instructors = Instructor.query.filter_by(
+        status="active"
+    ).order_by(Instructor.name.asc()).all()
+
+    pools = Pool.query.filter_by(
+        status="active"
+    ).order_by(Pool.name.asc()).all()
+
+    package_types = PackageType.query.filter_by(
+        status="active"
+    ).order_by(PackageType.name.asc()).all()
+
+    student_packages = get_active_student_packages()
+
+    if request.method == "POST":
+        selected_package_type_id = request.form.get(
+            "package_type_id",
+            type=int,
+        )
+        selected_ids = request.form.getlist("student_package_ids")
+    else:
+        selected_package_type_id = None
+        selected_ids = []
+
+        if slot:
+            active_bookings = ScheduleBooking.query.filter_by(
+                schedule_slot_id=slot.id,
+                status="active",
+            ).all()
+
+            selected_ids = [
+                str(booking.student_package_id)
+                for booking in active_bookings
+                if booking.student_package_id is not None
+            ]
+
+            if active_bookings and active_bookings[0].student_package:
+                selected_package_type_id = (
+                    active_bookings[0].student_package.package_type_id
+                )
+
+    return render_template(
+        "schedules/form.html",
+        slot=slot,
+        instructors=instructors,
+        pools=pools,
+        day_names=DAY_NAMES,
+        package_types=package_types,
+        student_packages=student_packages,
+        selected_package_type_id=selected_package_type_id,
+        selected_student_package_ids=selected_ids,
+    )
 
 @schedule_bp.route("/create", methods=["GET", "POST"])
 def create():
@@ -215,22 +435,7 @@ def create():
 
         flash(message, "error")
 
-    instructors = Instructor.query.filter_by(
-        status="active"
-    ).order_by(Instructor.name.asc()).all()
-
-    pools = Pool.query.filter_by(
-        status="active"
-    ).order_by(Pool.name.asc()).all()
-
-    return render_template(
-        "schedules/form.html",
-        slot=None,
-        instructors=instructors,
-        pools=pools,
-        day_names=DAY_NAMES,
-    )
-
+    return render_schedule_form()
 
 @schedule_bp.route("/<int:slot_id>/edit", methods=["GET", "POST"])
 def edit(slot_id):
@@ -245,28 +450,7 @@ def edit(slot_id):
 
         flash(message, "error")
 
-    instructors = Instructor.query.filter(
-        or_(
-            Instructor.status == "active",
-            Instructor.id == slot.instructor_id,
-        )
-    ).order_by(Instructor.name.asc()).all()
-
-    pools = Pool.query.filter(
-        or_(
-            Pool.status == "active",
-            Pool.id == slot.pool_id,
-        )
-    ).order_by(Pool.name.asc()).all()
-
-    return render_template(
-        "schedules/form.html",
-        slot=slot,
-        instructors=instructors,
-        pools=pools,
-        day_names=DAY_NAMES,
-    )
-
+    return render_schedule_form(slot)
 
 @schedule_bp.route(
     "/<int:slot_id>/toggle-status",
