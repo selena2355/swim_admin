@@ -1,0 +1,132 @@
+
+{% extends "base.html" %}
+
+{% block title %}Penempatan Murid{% endblock %}
+
+{% block content %}
+
+<div class="page-intro">
+    <div>
+        <h1>Penempatan Murid</h1>
+        <p>
+            Lihat slot jadwal dan kelompok murid yang sudah ditempatkan.
+        </p>
+    </div>
+</div>
+
+<div class="table-info">
+    Slot kosong dapat digunakan untuk kelompok baru.
+    Satu slot hanya dapat menampung satu kelompok dengan tipe paket yang sama.
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Hari</th>
+                <th>Waktu</th>
+                <th>Tentor</th>
+                <th>Kolam</th>
+                <th>Kelompok</th>
+                <th>Status Slot</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for slot in slots %}
+                {% set active_bookings = slot.bookings
+                    | selectattr('status', 'equalto', 'active')
+                    | list %}
+
+                <tr>
+                    <td>{{ slot.day_name }}</td>
+
+                    <td>
+                        {{ slot.start_time.strftime('%H:%M') }}
+                        –
+                        {{ slot.end_time.strftime('%H:%M') }}
+                    </td>
+
+                    <td>{{ slot.instructor.name }}</td>
+
+                    <td>{{ slot.pool.name }}</td>
+
+                    <td>
+                        {% if active_bookings %}
+                            {% set first_booking = active_bookings[0] %}
+
+                            <strong>
+                                {{ first_booking.student_package.package_type.name
+                                    if first_booking.student_package
+                                    else 'Paket lama' }}
+                            </strong>
+
+                            <div class="table-info">
+                                {{ active_bookings|length }} murid
+                            </div>
+
+                            <details>
+                                <summary>Lihat murid</summary>
+                                <ul>
+                                    {% for booking in active_bookings %}
+                                        <li>{{ booking.student.name }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </details>
+                        {% else %}
+                            <span class="badge-status inactive">
+                                Belum terisi
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if slot.status == 'active' %}
+                            <span class="badge-status active">
+                                Aktif
+                            </span>
+                        {% else %}
+                            <span class="badge-status inactive">
+                                Nonaktif
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if slot.status == 'active' and not active_bookings %}
+                            <a
+                                href="{{ url_for(
+                                    'placements.create',
+                                    slot_id=slot.id
+                                ) }}"
+                                class="btn btn-small btn-primary"
+                            >
+                                Tempatkan Murid
+                            </a>
+                        {% elif active_bookings %}
+                            <span class="table-info">
+                                Sudah ditempati
+                            </span>
+                        {% else %}
+                            <span class="table-info">
+                                Slot nonaktif
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            Belum ada slot jadwal.
+                            Buat slot terlebih dahulu di menu Jadwal Mingguan.
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit Slot Jadwal" if slot else "Tambah Slot Jadwal" }}{% endblock %}
+{% block breadcrumb %}Data Master / Slot Jadwal / {{ "Edit" if slot else "Tambah" }}{% endblock %}
+{% block page_heading %}{{ "Edit Slot Jadwal" if slot else "Tambah Slot Jadwal" }}{% endblock %}
+
+{% block content %}
+
+<div class="page-intro">
+    <div>
+        <h2>{{ "Perbarui Informasi Slot Jadwal" if slot else "Formulir Slot Jadwal Baru" }}</h2>
+        <p>
+            {{ "Ubah informasi slot jadwal yang sudah terdaftar." if slot
+            else "Masukkan informasi slot jadwal baru." }}
+        </p>
+    </div>
+</div>
+
+<div class="panel form-panel">
+    <form method="POST">
+        <div class="form-group">
+            <label for="instructor_id">Tentor <span>*</span></label>
+            <select id="instructor_id" name="instructor_id" required>
+                <option value="">Pilih tentor</option>
+                {% for instructor in instructors %}
+                <option value="{{ instructor.id }}" {% if slot and slot.instructor_id==instructor.id %} selected {%
+                    endif %}>
+                    {{ instructor.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="pool_id">Kolam Renang <span>*</span></label>
+            <select id="pool_id" name="pool_id" required>
+                <option value="">Pilih kolam</option>
+                {% for pool in pools %}
+                <option value="{{ pool.id }}" {% if slot and slot.pool_id==pool.id %} selected {% endif %}>
+                    {{ pool.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="day_of_week">Hari <span>*</span></label>
+            <select id="day_of_week" name="day_of_week" required>
+                <option value="">Pilih hari</option>
+                {% for day, day_name in day_names.items() %}
+                <option value="{{ day }}" {% if slot and slot.day_of_week==day %} selected {% endif %}>
+                    {{ day_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="start_time">Jam Mulai <span>*</span></label>
+            <input type="time" id="start_time" name="start_time"
+                value="{{ slot.start_time.strftime('%H:%M') if slot else '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="end_time">Jam Selesai <span>*</span></label>
+            <input type="time" id="end_time" name="end_time"
+                value="{{ slot.end_time.strftime('%H:%M') if slot else '' }}" required>
+        </div>
+
+        {% if slot %}
+        <div class="form-group">
+            <label>Status Saat Ini</label>
+            <div>
+                {% if slot.status == 'active' %}
+                <span class="badge-status active">Aktif</span>
+                {% else %}
+                <span class="badge-status inactive">Nonaktif</span>
+                {% endif %}
+            </div>
+            <small>Status dapat diubah melalui tombol aksi pada halaman Data Jadwal.</small>
+        </div>
+        {% endif %}
+
+        <div class="section-description">
+            <strong>Catatan:</strong>
+            Tipe paket dan jumlah murid akan ditentukan saat
+            proses penempatan murid, bukan saat membuat slot.
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('schedules.index') }}" class="btn btn-secondary">
+                Batal
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                {{ 'Simpan Perubahan' if slot else 'Simpan Slot' }}
+            </button>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}

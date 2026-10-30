@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Jadwal Mingguan{% endblock %}
+{% block breadcrumb %}Data Master / Data Jadwal{% endblock %}
+{% block page_heading %}Data Jadwal{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h1>Jadwal Mingguan</h1>
+        <p>Kelola slot jadwal tentor dan kolam renang.</p>
+    </div>
+
+    <a href="{{ url_for('schedules.create') }}" class="btn btn-primary">
+        + Tambah Slot
+    </a>
+</div>
+
+<div class="table-info">
+    Jadwal ditampilkan berdasarkan hari dan jam.
+    Slot kosong tetap ditampilkan agar admin dapat melihat
+    waktu yang tersedia.
+</div>
+
+{% for day, day_name in day_names.items() %}
+<section class="schedule-day">
+    <div class="schedule-day-header">
+        <h2>{{ day_name }}</h2>
+        <span>
+            {{ grouped_slots[day]|length }} slot
+        </span>
+    </div>
+
+    {% if grouped_slots[day] %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Waktu</th>
+                    <th>Tentor</th>
+                    <th>Kolam</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for slot in grouped_slots[day] %}
+                <tr>
+                    <td>
+                        {{ slot.start_time.strftime('%H:%M') }}
+                        –
+                        {{ slot.end_time.strftime('%H:%M') }}
+                    </td>
+
+                    <td>{{ slot.instructor.name }}</td>
+
+                    <td>{{ slot.pool.name }}</td>
+
+                    <td>
+                        {% if slot.status == 'active' %}
+                        <span class="badge-status active">
+                            Aktif
+                        </span>
+                        {% else %}
+                        <span class="badge-status inactive">
+                            Nonaktif
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('schedules.edit', slot_id=slot.id) }}"
+                                class="btn btn-small btn-secondary">
+                                Edit
+                            </a>
+
+                            <form method="POST" action="{{ url_for('schedules.toggle_status', slot_id=slot.id) }}"
+                                onsubmit="return confirm('Yakin ingin mengubah status slot ini?');">
+                                <button type="submit"
+                                    class="btn btn-small {% if slot.status == 'active' %}btn-danger{% else %}btn-success{% endif %}">
+                                    {% if slot.status == 'active' %}
+                                    Nonaktifkan
+                                    {% else %}
+                                    Aktifkan
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        Belum ada slot jadwal untuk hari {{ day_name }}.
+    </div>
+    {% endif %}
+</section>
+{% endfor %}
+
+<div class="table-info">
+    Total data ditampilkan: {{ total_slots|length }} slot
+</div>
+
+{% endblock %}

@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, app, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
@@ -38,8 +38,19 @@ def create_app():
 
     from app.routes.pool_routes import pool_bp
     from app.routes.instructor_routes import instructor_bp
+    from app.routes.package_type_routes import package_type_bp
+    from app.routes.student_routes import student_bp
+    from app.routes.schedule_routes import schedule_bp
+    from app.routes.placement_routes import placement_bp
+
     app.register_blueprint(pool_bp)
     app.register_blueprint(instructor_bp)
+    app.register_blueprint(package_type_bp)
+    app.register_blueprint(student_bp)
+    app.register_blueprint(schedule_bp)
+    app.register_blueprint(placement_bp)
+    
+    
     
     
     @app.route("/")

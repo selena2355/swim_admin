@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}{{ "Edit Kolam" if pool else "Tambah Kolam" }}{% endblock %}
@@ -55,12 +54,12 @@
                     <span class="badge-status inactive">Nonaktif</span>
                 {% endif %}
             </div>
-            <small>Untuk mengubah status, gunakan tombol pada halaman daftar kolam.</small>
+            <small>Status dapat diubah melalui tombol aksi pada halaman Data Kolam.</small>
         </div>
         {% endif %}
 
         <div class="form-actions">
-            <a href="{{ url_for('pools.index') }}" class="btn btn-light">
+            <a href="{{ url_for('pools.index') }}" class="btn btn-secondary">
                 Batal
             </a>
             <button type="submit" class="btn btn-primary">

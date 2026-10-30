@@ -13,6 +13,8 @@ class ScheduleBooking(db.Model):
 
     student_id = db.Column(db.Integer, db.ForeignKey("students.id"),nullable=False)
 
+    student_package_id = db.Column(db.Integer, db.ForeignKey("student_packages.id"), nullable=True)
+    
     status = db.Column(db.String(20), nullable=False, default="active")
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
@@ -23,9 +25,10 @@ class ScheduleBooking(db.Model):
 
     student = db.relationship("Student", backref=db.backref("schedule_bookings", lazy=True))
 
+    student_package = db.relationship("StudentPackage", backref=db.backref("schedule_bookings", lazy=True),)
+
     def __repr__(self):
         return (
-            f"<ScheduleBooking "
-            f"student_id={self.student_id} "
-            f"schedule_slot_id={self.schedule_slot_id}>"
+            f"<ScheduleBooking ={self.student_id} "
+            f"schedule_slot_id ={self.schedule_slot_id}>"
         )

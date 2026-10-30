@@ -1,30 +1,23 @@
-
 {% extends "base.html" %}
 
+{% block title %}{{ "Edit Tentor" if instructor else "Tambah Tentor" }}{% endblock %}
+{% block breadcrumb %}Data Master / Tentor / {{ "Edit" if instructor else "Tambah" }}{% endblock %}
+{% block page_heading %}{{ "Edit Tentor" if instructor else "Tambah Tentor" }}{% endblock %}
+
 {% block content %}
+
 <div class="page-intro">
     <div>
-        <h2>{{ 'Edit Tentor' if instructor else 'Tambah Tentor' }}</h2>
+        <h2>{{ "Perbarui Informasi Tentor" if instructor else "Formulir Tentor Baru" }}</h2>
         <p>
-            {{ 'Perbarui informasi tentor.' if instructor
-            else 'Masukkan informasi tentor baru.' }}
+            {{ "Ubah informasi tentor yang sudah terdaftar." if instructor
+               else "Masukkan informasi tentor baru." }}
         </p>
     </div>
-
-    <a href="{{ url_for('instructors.index') }}" class="btn btn-secondary">
-        Kembali
-    </a>
 </div>
 
-<div class="form-panel">
-    <form
-        method="POST"
-        action="{{
-            url_for('instructors.edit', instructor_id=instructor.id)
-            if instructor
-            else url_for('instructors.create')
-        }}"
-    >
+<div class="panel form-panel">
+    <form method="POST">
         <div class="form-group">
             <label for="name">Nama Tentor <span>*</span></label>
             <input
@@ -42,16 +35,10 @@
             <label for="gender">Jenis Kelamin</label>
             <select id="gender" name="gender">
                 <option value="">Pilih jenis kelamin</option>
-                <option
-                    value="male"
-                    {% if instructor and instructor.gender == 'male' %}selected{% endif %}
-                >
+                <option value="male" {% if instructor and instructor.gender == 'male' %}selected{% endif %}>
                     Laki-laki
                 </option>
-                <option
-                    value="female"
-                    {% if instructor and instructor.gender == 'female' %}selected{% endif %}
-                >
+                <option value="female" {% if instructor and instructor.gender == 'female' %}selected{% endif %}>
                     Perempuan
                 </option>
             </select>
@@ -73,16 +60,14 @@
         {% if instructor %}
         <div class="form-group">
             <label>Status Saat Ini</label>
-            <p>
+            <div>
                 {% if instructor.status == 'active' %}
                     <span class="badge-status active">Aktif</span>
                 {% else %}
                     <span class="badge-status inactive">Nonaktif</span>
                 {% endif %}
-            </p>
-            <small>
-                Status dapat diubah melalui tombol aksi pada halaman Data Tentor.
-            </small>
+            </div>
+            <small>Status dapat diubah melalui tombol aksi pada halaman Data Tentor.</small>
         </div>
         {% endif %}
 

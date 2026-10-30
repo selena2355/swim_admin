@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit Paket" if package else "Tambah Paket" }}{% endblock %}
+{% block breadcrumb %}Data Master / Paket / {{ "Edit" if package else "Tambah" }}{% endblock %}
+{% block page_heading %}{{ "Edit Paket" if package else "Tambah Paket" }}{% endblock %}
+
+{% block content %}
+
+<div class="page-intro">
+    <div>
+        <h2>{{ "Perbarui Informasi Paket" if package else "Formulir Paket Baru" }}</h2>
+        <p>
+            {{ "Ubah informasi paket yang sudah terdaftar." if package
+            else "Masukkan informasi paket baru." }}
+        </p>
+    </div>
+</div>
+
+<div class="panel form-panel">
+    <form method="POST">
+        <div class="form-group">
+            <label for="variant">Jenis Paket <span>*</span></label>
+            <select id="variant" name="variant" required>
+                <option value="private_1" {% if selected_variant=='private_1' %}selected{% endif %}>
+                    Private 1 (1 siswa)
+                </option>
+                <option value="private_2" {% if selected_variant=='private_2' %}selected{% endif %}>
+                    Private 2 (2 siswa)
+                </option>
+                <option value="rombel" {% if selected_variant=='rombel' %}selected{% endif %}>
+                    Rombel (3–5 siswa)
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="service_type">Jenis Layanan <span>*</span></label>
+            <select id="service_type" name="service_type" required>
+                <option value="reguler" {% if selected_service=='reguler' %}selected{% endif %}>
+                    Reguler
+                </option>
+                <option value="khusus" {% if selected_service=='khusus' %}selected{% endif %}>
+                    Khusus
+                </option>
+            </select>
+            <small>
+                Reguler mengikuti slot yang tersedia, sedangkan Khusus mengikuti pilihan jadwal siswa.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Harga Paket (Rp) <span>*</span></label>
+            <input type="number" id="price" name="price" value="{{ price_value }}" min="0" step="1000" required>
+        </div>
+
+        <div class="form-group">
+            <label for="session_quota">Kuota Sesi <span>*</span></label>
+            <input type="number" id="session_quota" name="session_quota" value="{{ quota_value }}" min="1" step="1"
+                required>
+            <small>Standar paket saat ini adalah 4 sesi.</small>
+        </div>
+
+        {% if package %}
+        <div class="form-group">
+            <label>Status Saat Ini</label>
+            <p>
+                {% if package.status == 'active' %}
+                <span class="badge-status active">Aktif</span>
+                {% else %}
+                <span class="badge-status inactive">Nonaktif</span>
+                {% endif %}
+            </p>
+            <small>Status dapat diubah melalui tombol aksi di halaman Data Paket.</small>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="{{ url_for('package_types.index') }}" class="btn btn-secondary">
+                Batal
+            </a>
+            <button type="submit" class="btn btn-primary">
+                {{ 'Simpan Perubahan' if package else 'Simpan Paket' }}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

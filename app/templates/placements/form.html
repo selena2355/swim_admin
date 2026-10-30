@@ -1,0 +1,144 @@
+
+{% extends "base.html" %}
+
+{% block title %}Tempatkan Murid{% endblock %}
+
+{% block content %}
+
+<div class="page-intro">
+    <div>
+        <h1>Tempatkan Murid</h1>
+        <p>Pilih satu tipe paket dan semua murid dalam kelompoknya.</p>
+    </div>
+
+    <a href="{{ url_for('placements.index') }}" class="btn">
+        Kembali
+    </a>
+</div>
+
+<div class="form-panel">
+
+    <h2>Informasi Slot</h2>
+
+    <div class="detail-grid">
+        <div class="detail-item">
+            <span>Hari</span>
+            <strong>{{ slot.day_name }}</strong>
+        </div>
+
+        <div class="detail-item">
+            <span>Waktu</span>
+            <strong>
+                {{ slot.start_time.strftime('%H:%M') }}
+                – {{ slot.end_time.strftime('%H:%M') }}
+            </strong>
+        </div>
+
+        <div class="detail-item">
+            <span>Tentor</span>
+            <strong>{{ slot.instructor.name }}</strong>
+        </div>
+
+        <div class="detail-item">
+            <span>Kolam</span>
+            <strong>{{ slot.pool.name }}</strong>
+        </div>
+    </div>
+
+    <hr>
+
+    <form method="POST">
+
+        <div class="form-group">
+            <label for="package_type_id">
+                Tipe Paket <span>*</span>
+            </label>
+
+            <select
+                id="package_type_id"
+                name="package_type_id"
+                required
+            >
+                <option value="">Pilih tipe paket</option>
+
+                {% for package_type in package_types %}
+                    <option value="{{ package_type.id }}">
+                        {{ package_type.name }}
+                        ({{ package_type.min_participants }}
+                        –{{ package_type.max_participants }} murid)
+                    </option>
+                {% endfor %}
+            </select>
+
+            <small>
+                Pilih tipe paket yang sama dengan paket milik semua murid
+                dalam kelompok ini.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label>Pilih Murid <span>*</span></label>
+
+            <small>
+                Centang semua murid yang akan menempati slot ini.
+                Jumlah murid harus memenuhi ketentuan tipe paket.
+            </small>
+        </div>
+
+        {% if student_packages %}
+            <div class="placement-student-list">
+                {% for student_package in student_packages %}
+                    <label class="placement-student-item">
+                        <input
+                            type="checkbox"
+                            name="student_package_ids"
+                            value="{{ student_package.id }}"
+                        >
+
+                        <span>
+                            <strong>
+                                {{ student_package.student.name }}
+                            </strong>
+
+                            <small>
+                                Paket:
+                                {{ student_package.package_type.name }}
+                                · Pembelian:
+                                {{ student_package.purchase_date.strftime('%d-%m-%Y') }}
+                            </small>
+                        </span>
+                    </label>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                Tidak ada paket aktif milik murid aktif.
+                Tambahkan data murid dan paket terlebih dahulu.
+            </div>
+        {% endif %}
+
+        <div class="section-description">
+            <strong>Perhatian:</strong>
+            sistem akan menolak penempatan jika jumlah murid tidak sesuai,
+            paket berbeda, atau salah satu murid memiliki jadwal aktif
+            yang bertabrakan.
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('placements.index') }}" class="btn">
+                Batal
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-primary"
+                {% if not student_packages %}disabled{% endif %}
+            >
+                Simpan Penempatan
+            </button>
+        </div>
+
+    </form>
+</div>
+
+{% endblock %}

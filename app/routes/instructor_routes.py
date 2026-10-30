@@ -99,7 +99,7 @@ def edit(instructor_id):
             db.session.rollback()
             flash("Perubahan data tentor gagal disimpan.", "error")
 
-    return render_template("instructors/form.html", instructor=instructor,)
+    return render_template("instructors/form.html", instructor=instructor)
 
 
 @instructor_bp.route("/<int:instructor_id>/toggle-status", methods=["POST"])

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Data Paket{% endblock %}
+{% block breadcrumb %}Data Master / Data Paket{% endblock %}
+{% block page_heading %}Data Paket{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+    <div>
+        <h2>Tipe Paket</h2>
+        <p>Kelola jenis layanan, harga, dan kuota sesi renang.</p>
+    </div>
+
+    <a href="{{ url_for('package_types.create') }}" class="btn btn-primary">
+        + Tambah Paket
+    </a>
+</div>
+<div class="panel">
+    <form method="GET" action="{{ url_for('package_types.index') }}" class="filter-form">
+        <div class="search-box">
+            <input type="text" name="search" placeholder="Cari nama paket..." value="{{ search }}">
+        </div>
+
+        <select name="status">
+            <option value="">Semua Status</option>
+            <option value="active" {% if status_filter=='active' %}selected{% endif %}>
+                Aktif
+            </option>
+            <option value="inactive" {% if status_filter=='inactive' %}selected{% endif %}>
+                Nonaktif
+            </option>
+        </select>
+
+        <button type="submit" class="btn btn-primary">Cari</button>
+        <a href="{{ url_for('package_types.index') }}" class="btn btn-danger">Reset</a>
+    </form>
+
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Nama Paket</th>
+                    <th>Jenis Kelas</th>
+                    <th>Layanan</th>
+                    <th>Kapasitas</th>
+                    <th>Harga</th>
+                    <th>Kuota</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for package in packages %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <strong>{{ package.name }}</strong>
+                    </td>
+                    <td>
+                        {{ 'Private' if package.class_type == 'private' else 'Rombel' }}
+                    </td>
+                    <td>
+                        {{ 'Reguler' if package.service_type == 'reguler' else 'Khusus' }}
+                    </td>
+                    <td>
+                        {% if package.min_participants == package.max_participants %}
+                        {{ package.min_participants }} orang
+                        {% else %}
+                        {{ package.min_participants }}–{{ package.max_participants }} orang
+                        {% endif %}
+                    </td>
+                    <td>
+                        Rp{{ "{:,.0f}".format(package.price|float).replace(",", ".") }}
+                    </td>
+                    <td>{{ package.session_quota }} sesi</td>
+                    <td>
+                        {% if package.status == 'active' %}
+                        <span class="badge-status active">Aktif</span>
+                        {% else %}
+                        <span class="badge-status inactive">Nonaktif</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{{ url_for('package_types.edit', package_id=package.id) }}"
+                                class="btn btn-small btn-secondary">
+                                Edit
+                            </a>
+
+                            <form method="POST"
+                                action="{{ url_for('package_types.toggle_status', package_id=package.id) }}"
+                                onsubmit="return confirm('Yakin ingin mengubah status paket ini?');">
+                                <button type="submit"
+                                    class="btn btn-small {% if package.status == 'active' %}btn-danger{% else %}btn-success{% endif %}">
+                                    {% if package.status == 'active' %}
+                                    Nonaktifkan
+                                    {% else %}
+                                    Aktifkan
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="empty-state">
+                        <div class="empty-icon">♙</div>
+                        <p>
+                            {% if search or status_filter %}
+                            Tidak ada paket yang sesuai dengan pencarian.
+                            {% else %}
+                            Belum ada data paket. Tambahkan paket pertamamu!
+                            {% endif %}
+                        </p>
+                        {% if not search and not status_filter %}
+                        <a href="{{ url_for('package_types.create') }}" class="btn btn-primary">
+                            + Tambah Paket
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="table-info">
+        Total data ditampilkan: {{ packages|length }} paket
+    </p>
+</div>
+{% endblock %}

@@ -81,8 +81,7 @@
                                 Edit
                             </a>
 
-                            <form method="POST"
-                                action="{{ url_for('instructors.toggle_status', instructor_id=instructor.id) }}"
+                            <form method="POST" action="{{ url_for('instructors.toggle_status', instructor_id=instructor.id) }}"
                                 onsubmit="return confirm('Yakin ingin mengubah status tentor ini?');">
                                 <button type="submit"
                                     class="btn btn-small {% if instructor.status == 'active' %}btn-danger{% else %}btn-success{% endif %}">

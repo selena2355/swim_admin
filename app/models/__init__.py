@@ -5,3 +5,4 @@ from app.models.pool import Pool
 from app.models.instructor import Instructor
 from app.models.schedule_slot import ScheduleSlot
 from app.models.schedule_booking import ScheduleBooking
+from app.models.waitlist_entry import WaitlistEntry

@@ -619,6 +619,7 @@ a {
 .filter-form input,
 .filter-form select,
 .form-group input,
+.form-group select,
 .form-group textarea {
     width: 100%;
     min-height: 40px;
@@ -639,6 +640,7 @@ a {
 .filter-form input:focus,
 .filter-form select:focus,
 .form-group input:focus,
+.form-group select:focus,
 .form-group textarea:focus {
     outline: none;
     border-color: var(--primary);
@@ -688,7 +690,7 @@ a {
 .action-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
+    gap: 5px;
     align-items: center;
 }
 
@@ -881,4 +883,147 @@ a {
 
 .form-group label span {
     color: #dc3545;
+}
+
+
+/* Detail murid */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.detail-grid .form-panel h3,
+.package-history h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item > span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.detail-item > strong {
+    color: #1f2937;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.section-description {
+    margin: -8px 0 20px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.package-history {
+    margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Weekly schedule */
+
+.schedule-day {
+    margin-top: 24px;
+}
+
+.schedule-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.schedule-day-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.schedule-day-header span {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.schedule-day .table-container {
+    margin-bottom: 16px;
+}
+
+.schedule-day .empty-state {
+    margin-bottom: 16px;
+}
+
+.schedule-day .data-table {
+    min-width: 680px;
+}
+
+.schedule-day .action-buttons form {
+    margin: 0;
+}
+
+
+/* Placement module */
+
+.placement-student-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0 24px;
+}
+
+.placement-student-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.placement-student-item:hover {
+    border-color: #93c5fd;
+}
+
+.placement-student-item input[type="checkbox"] {
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.placement-student-item span {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.placement-student-item small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.placement-student-item strong {
+    color: #1e293b;
+}
+
+.placement-student-item input:checked + span strong {
+    color: #2563eb;
 }

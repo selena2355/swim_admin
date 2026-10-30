@@ -32,11 +32,13 @@
 
                 <div class="sidebar-label">DATA MASTER</div>
 
-                <span class="nav-link disabled">
-                    <span class="nav-icon">♙</span>
+
+                <a href="{{ url_for('students.index') }}"
+                    class="nav-link {% if request.endpoint and request.endpoint.startswith('students.') %}active{% endif %}">
+                    <span class="nav-icon">♧</span>
                     <span>Data Murid</span>
-                    <small>Segera</small>
-                </span>
+                </a>
+
 
                 <a href="{{ url_for('instructors.index') }}"
                     class="nav-link {% if request.endpoint and request.endpoint.startswith('instructors.') %}active{% endif %}">
@@ -50,19 +52,25 @@
                     <span>Data Kolam</span>
                 </a>
 
-                <span class="nav-link disabled">
-                    <span class="nav-icon">▤</span>
+                <a href="{{ url_for('package_types.index') }}"
+                    class="nav-link {% if request.endpoint and request.endpoint.startswith('package_types.') %}active{% endif %}">
+                    <span class="nav-icon">◇</span>
                     <span>Tipe Paket</span>
-                    <small>Segera</small>
-                </span>
+                </a>
 
                 <div class="sidebar-label">OPERASIONAL</div>
 
-                <span class="nav-link disabled">
+                <a href="{{ url_for('schedules.index') }}"
+                    class="nav-link {% if request.endpoint and request.endpoint.startswith('schedules.') %}active{% endif %}">
                     <span class="nav-icon">▦</span>
                     <span>Jadwal Mingguan</span>
-                    <small>Segera</small>
-                </span>
+                </a>
+
+                <a href="{{ url_for('placements.index') }}" 
+                    class="nav-link {% if request.endpoint and request.endpoint.startswith('placements.') %}active{% endif %}">
+                    <span class="nav-icon">♘</span>
+                    <span>Penempatan Murid</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
